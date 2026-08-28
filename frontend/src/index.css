@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   HabitQuest 4-Theme Design System Tokens
+   ========================================================================== */
+
+:root,
+[data-theme="clarity"] {
+  --background: #FFFFFF;
+  --surface: #F5F8FC;
+  --surface-elevated: #FFFFFF;
+  --border: #E1E8F0;
+  --border-subtle: #EDF2F7;
+  --text-primary: #101828;
+  --text-secondary: #5C6B7A;
+  --text-tertiary: #8D9AA8;
+  --accent-primary: #2563EB;
+  --accent-primary-hover: #1D4ED8;
+  --accent-secondary: #93C5FD;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --focus-ring: rgba(37, 99, 235, 0.3);
+  --chart-grid: #E1E8F0;
+  --chart-tooltip-bg: #FFFFFF;
+  --chart-tooltip-text: #101828;
+  --grid-cell-border: #CBD5E1;
+  --grid-cell-bg: #F8FAFC;
+}
+
+[data-theme="midnight"] {
+  --background: #0B0B10;
+  --surface: #16151D;
+  --surface-elevated: #1E1D28;
+  --border: #2A2934;
+  --border-subtle: #201F2B;
+  --text-primary: #F2F1F7;
+  --text-secondary: #A6A3B5;
+  --text-tertiary: #6E6B80;
+  --accent-primary: #8B5CF6;
+  --accent-primary-hover: #7C3AED;
+  --accent-secondary: #C4B5FD;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --focus-ring: rgba(139, 92, 246, 0.4);
+  --chart-grid: #2A2934;
+  --chart-tooltip-bg: #1E1D28;
+  --chart-tooltip-text: #F2F1F7;
+  --grid-cell-border: #383648;
+  --grid-cell-bg: #1A1924;
+}
+
+[data-theme="fresh"] {
+  --background: #FFFFFF;
+  --surface: #F7FAF8;
+  --surface-elevated: #FFFFFF;
+  --border: #E3E9E5;
+  --border-subtle: #EDF2EE;
+  --text-primary: #12201A;
+  --text-secondary: #5B6B62;
+  --text-tertiary: #8E9E95;
+  --accent-primary: #16A34A;
+  --accent-primary-hover: #15803D;
+  --accent-secondary: #86EFAC;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --focus-ring: rgba(22, 163, 74, 0.3);
+  --chart-grid: #E3E9E5;
+  --chart-tooltip-bg: #FFFFFF;
+  --chart-tooltip-text: #12201A;
+  --grid-cell-border: #CCD9D0;
+  --grid-cell-bg: #F0F5F2;
+}
+
+[data-theme="harvest"] {
+  --background: #FCFBF3;
+  --surface: #F6F4E4;
+  --surface-elevated: #FFFFFF;
+  --border: #E8E2C2;
+  --border-subtle: #F0EBD0;
+  --text-primary: #24291B;
+  --text-secondary: #6B7057;
+  --text-tertiary: #949980;
+  --accent-primary: #65A30D;
+  --accent-primary-hover: #4D7C0F;
+  --accent-secondary: #EAB308;
+  --success: #65A30D;
+  --warning: #EAB308;
+  --danger: #DC2626;
+  --focus-ring: rgba(101, 163, 13, 0.3);
+  --chart-grid: #E8E2C2;
+  --chart-tooltip-bg: #FFFFFF;
+  --chart-tooltip-text: #24291B;
+  --grid-cell-border: #DCD4AC;
+  --grid-cell-bg: #F2EED6;
+}
+
+/* Global body styling */
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Tabular numerals for stats */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus rings */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
