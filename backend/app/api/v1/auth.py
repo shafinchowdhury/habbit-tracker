@@ -138,7 +138,7 @@ async def update_current_user_profile(
     if update_in.timezone is not None:
         current_user.timezone = update_in.timezone
 
-    current_user.updated_at = datetime.now(timezone.utc)
+    current_user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     await db.refresh(current_user)
 
@@ -156,6 +156,6 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
     
     current_user.hashed_password = get_password_hash(pwd_in.new_password)
-    current_user.updated_at = datetime.now(timezone.utc)
+    current_user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     return {"message": "Password successfully updated"}
