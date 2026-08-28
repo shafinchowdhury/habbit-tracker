@@ -4,6 +4,7 @@ import { AdminUserSummary, AdminStats, AdminUserDetail, Habit } from '../types';
 import {
   Shield,
   ShieldCheck,
+  ShieldAlert,
   Users,
   CheckSquare,
   Trophy,
@@ -18,6 +19,10 @@ import {
   User as UserIcon,
   X,
   Loader2,
+  Trash2,
+  Crown,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -28,6 +33,8 @@ export const AdminPage: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'active'>('all');
   const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUserDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchAdminData = async () => {
     setIsLoading(true);
@@ -48,6 +55,71 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     fetchAdminData();
   }, []);
+
+  const handleToggleRole = async (userId: string, currentIsSuperuser: boolean, username: string) => {
+    setActionLoadingId(userId);
+    setFeedbackMsg(null);
+    try {
+      const updated = await apiRequest<AdminUserSummary>(`/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_superuser: !currentIsSuperuser }),
+      });
+      setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, is_superuser: !currentIsSuperuser } : u)));
+      if (selectedUserDetail && selectedUserDetail.user.id === userId) {
+        setSelectedUserDetail({
+          ...selectedUserDetail,
+          user: { ...selectedUserDetail.user, is_superuser: !currentIsSuperuser },
+        });
+      }
+      setFeedbackMsg({
+        type: 'success',
+        text: `Role for @${username} changed to ${!currentIsSuperuser ? 'Superuser Admin' : 'Member'}!`,
+      });
+    } catch (err: any) {
+      setFeedbackMsg({
+        type: 'error',
+        text: err.message || 'Failed to update user role.',
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, username: string) => {
+    if (
+      !window.confirm(
+        `⚠️ PERMANENT ACTION: Are you sure you want to delete user @${username}? This will remove all their habits, streaks, and completions.`
+      )
+    ) {
+      return;
+    }
+
+    setActionLoadingId(userId);
+    setFeedbackMsg(null);
+    try {
+      await apiRequest(`/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      if (selectedUserDetail && selectedUserDetail.user.id === userId) {
+        setSelectedUserDetail(null);
+      }
+      setFeedbackMsg({
+        type: 'success',
+        text: `User @${username} has been permanently deleted.`,
+      });
+      // Refresh statistics
+      const statsRes = await apiRequest<AdminStats>('/admin/stats');
+      setStats(statsRes);
+    } catch (err: any) {
+      setFeedbackMsg({
+        type: 'error',
+        text: err.message || 'Failed to delete user.',
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   const handleInspectUser = async (userId: string) => {
     setIsLoadingDetail(true);
@@ -106,9 +178,35 @@ export const AdminPage: React.FC = () => {
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-surface hover:bg-surface-elevated text-xs font-semibold text-text-secondary hover:text-text-primary transition-all self-start sm:self-auto disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh Data</span>
+          <span>Refresh</span>
         </button>
       </div>
+
+      {/* Feedback Banner */}
+      {feedbackMsg && (
+        <div
+          className={`p-3.5 rounded-2xl flex items-center justify-between text-xs font-semibold animate-in fade-in duration-200 border ${
+            feedbackMsg.type === 'success'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedbackMsg.type === 'success' ? (
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            ) : (
+              <ShieldAlert className="w-4 h-4 text-rose-500" />
+            )}
+            <span>{feedbackMsg.text}</span>
+          </div>
+          <button
+            onClick={() => setFeedbackMsg(null)}
+            className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Overview Stat Cards */}
       {stats && (
@@ -341,13 +439,46 @@ export const AdminPage: React.FC = () => {
 
                     {/* Actions */}
                     <td className="px-4 py-3.5 text-right">
-                      <button
-                        onClick={() => handleInspectUser(u.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-elevated text-accent font-semibold transition-all hover:border-accent/40"
-                      >
-                        <span>Inspect</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleToggleRole(u.id, u.is_superuser, u.username)}
+                          disabled={actionLoadingId === u.id}
+                          title={u.is_superuser ? 'Demote to Member' : 'Promote to Admin'}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                            u.is_superuser
+                              ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                              : 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                          }`}
+                        >
+                          {actionLoadingId === u.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : u.is_superuser ? (
+                            <UserX className="w-3.5 h-3.5" />
+                          ) : (
+                            <Crown className="w-3.5 h-3.5" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {u.is_superuser ? 'Demote' : 'Make Admin'}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteUser(u.id, u.username)}
+                          disabled={actionLoadingId === u.id}
+                          title="Delete User"
+                          className="p-1.5 rounded-lg border border-border bg-surface hover:bg-rose-500/10 text-text-secondary hover:text-rose-500 hover:border-rose-500/30 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+
+                        <button
+                          onClick={() => handleInspectUser(u.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-surface hover:bg-surface-elevated text-accent font-semibold transition-all hover:border-accent/40"
+                        >
+                          <span>Inspect</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -371,10 +502,10 @@ export const AdminPage: React.FC = () => {
                   <img
                     src={selectedUserDetail.user.avatar_url}
                     alt={selectedUserDetail.user.username}
-                    className="w-12 h-12 rounded-2xl object-cover border border-border"
+                    className="w-12 h-12 rounded-2xl object-cover border border-border shadow-subtle"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-accent text-white flex items-center justify-center text-xl font-bold font-display shadow-subtle">
+                  <div className="w-12 h-12 rounded-2xl bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
                     {selectedUserDetail.user.username[0].toUpperCase()}
                   </div>
                 )}
@@ -383,16 +514,18 @@ export const AdminPage: React.FC = () => {
                     <h3 className="text-lg font-bold text-text-primary">
                       {selectedUserDetail.user.first_name || selectedUserDetail.user.username}
                     </h3>
-                    {selectedUserDetail.user.is_superuser && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 text-rose-500 border border-rose-500/30">
-                        Admin
+                    {selectedUserDetail.user.is_superuser ? (
+                      <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-rose-500/15 text-rose-500 border border-rose-500/30 flex items-center gap-1">
+                        <Shield className="w-3 h-3" /> Admin
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-md font-medium text-[10px] bg-surface text-text-secondary border border-border flex items-center gap-1">
+                        <UserIcon className="w-3 h-3" /> Member
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-text-secondary flex items-center gap-2">
-                    <span>@{selectedUserDetail.user.username}</span>
-                    <span>•</span>
-                    <span>{selectedUserDetail.user.email}</span>
+                  <p className="text-xs text-text-secondary">
+                    @{selectedUserDetail.user.username} • {selectedUserDetail.user.email}
                   </p>
                 </div>
               </div>
@@ -404,18 +537,68 @@ export const AdminPage: React.FC = () => {
               </button>
             </div>
 
+            {/* Admin Management Bar inside Modal */}
+            <div className="p-3.5 rounded-2xl bg-surface border border-border my-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-text-primary">User Account Management</p>
+                <p className="text-[11px] text-text-secondary">
+                  Role: {selectedUserDetail.user.is_superuser ? 'Superuser Admin' : 'Standard Member'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    handleToggleRole(
+                      selectedUserDetail.user.id,
+                      selectedUserDetail.user.is_superuser,
+                      selectedUserDetail.user.username
+                    )
+                  }
+                  disabled={actionLoadingId === selectedUserDetail.user.id}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                    selectedUserDetail.user.is_superuser
+                      ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                      : 'border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                  }`}
+                >
+                  {selectedUserDetail.user.is_superuser ? (
+                    <>
+                      <UserX className="w-3.5 h-3.5" />
+                      <span>Demote to Member</span>
+                    </>
+                  ) : (
+                    <>
+                      <Crown className="w-3.5 h-3.5" />
+                      <span>Promote to Admin</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleDeleteUser(selectedUserDetail.user.id, selectedUserDetail.user.username)
+                  }
+                  disabled={actionLoadingId === selectedUserDetail.user.id}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 text-xs font-semibold transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete User</span>
+                </button>
+              </div>
+            </div>
+
             {/* Quick Metrics */}
-            <div className="grid grid-cols-4 gap-2 my-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4">
               <div className="p-3 rounded-xl bg-surface border border-border text-center">
-                <span className="text-[10px] text-text-secondary uppercase">Level & XP</span>
+                <span className="text-[10px] text-text-secondary uppercase">Level</span>
                 <p className="font-bold text-sm text-accent mt-0.5">
                   Lvl {selectedUserDetail.user.level} ({selectedUserDetail.user.current_xp} XP)
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-surface border border-border text-center">
-                <span className="text-[10px] text-text-secondary uppercase">Streak</span>
+                <span className="text-[10px] text-text-secondary uppercase">Streaks</span>
                 <p className="font-bold text-sm text-amber-500 mt-0.5">
-                  🔥 {selectedUserDetail.user.current_streak}d
+                  🔥 {selectedUserDetail.user.current_streak}d (Max: {selectedUserDetail.user.longest_streak}d)
                 </p>
               </div>
               <div className="p-3 rounded-xl bg-surface border border-border text-center">

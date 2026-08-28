@@ -147,3 +147,25 @@ class AdminService:
             total_challenges=total_challenges,
             active_users_last_7d=active_users_7d,
         )
+
+    @staticmethod
+    async def update_user_role(db: AsyncSession, target_user_id: str, is_superuser: bool) -> Optional[User]:
+        stmt = select(User).where(User.id == target_user_id)
+        user = (await db.execute(stmt)).scalar_one_or_none()
+        if not user:
+            return None
+        user.is_superuser = is_superuser
+        user.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        await db.commit()
+        await db.refresh(user)
+        return user
+
+    @staticmethod
+    async def delete_user(db: AsyncSession, target_user_id: str) -> bool:
+        stmt = select(User).where(User.id == target_user_id)
+        user = (await db.execute(stmt)).scalar_one_or_none()
+        if not user:
+            return False
+        await db.delete(user)
+        await db.commit()
+        return True
