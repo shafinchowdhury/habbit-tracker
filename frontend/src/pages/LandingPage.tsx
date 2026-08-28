@@ -86,9 +86,9 @@ export const LandingPage: React.FC = () => {
 
           <Link
             to="/login"
-            className="w-full sm:w-auto px-7 py-3.5 rounded-2xl border border-border bg-surface hover:bg-surface-elevated text-text-primary font-bold text-sm transition-colors shadow-subtle"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-2xl border border-border bg-surface hover:bg-surface-elevated text-text-primary font-bold text-sm transition-colors shadow-subtle flex items-center justify-center"
           >
-            Sign In with Demo
+            Sign In
           </Link>
         </div>
 

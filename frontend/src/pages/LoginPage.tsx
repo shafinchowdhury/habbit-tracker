@@ -8,8 +8,8 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [emailOrUsername, setEmailOrUsername] = useState('demo@habitquest.app');
-  const [password, setPassword] = useState('password123');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,11 +34,6 @@ export const LoginPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleFillDemo = () => {
-    setEmailOrUsername('demo@habitquest.app');
-    setPassword('password123');
   };
 
   return (
@@ -108,17 +103,6 @@ export const LoginPage: React.FC = () => {
             <span>Sign In</span>
           </button>
         </form>
-
-        {/* Demo Quick Fill Button */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            className="w-full py-2 px-3 rounded-xl border border-dashed border-accent/40 bg-accent/5 text-accent text-xs font-semibold hover:bg-accent/10 transition-colors"
-          >
-            ✨ Quick Fill Demo Credentials (demo@habitquest.app)
-          </button>
-        </div>
 
         {/* Footer Link */}
         <div className="text-center pt-2 border-t border-border">
