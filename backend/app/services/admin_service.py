@@ -8,7 +8,6 @@ from app.models.habit import Habit
 from app.models.completion import HabitCompletion
 from app.models.gamification import Streak, UserLevel, XPTransaction
 from app.models.challenge import Challenge
-from app.models.social import Notification
 from app.schemas.admin import AdminUserSummary, AdminStats, AdminUserDetail
 from app.services.habit_service import HabitService
 
@@ -148,58 +147,3 @@ class AdminService:
             total_challenges=total_challenges,
             active_users_last_7d=active_users_7d,
         )
-
-    @staticmethod
-    async def update_user_role(
-        db: AsyncSession,
-        target_user_id: str,
-        is_superuser: bool,
-        admin_username: str = "Admin",
-    ) -> Optional[AdminUserSummary]:
-        stmt = select(User).where(User.id == target_user_id)
-        user = (await db.execute(stmt)).scalar_one_or_none()
-        if not user:
-            return None
-
-        user.is_superuser = is_superuser
-
-        # Send notification to user about their role update
-        if is_superuser:
-            notif = Notification(
-                user_id=target_user_id,
-                type="admin",
-                title="👑 You are now an Admin!",
-                message=f"Administrator @{admin_username} has granted you Admin privileges. You now have full access to the Admin Portal.",
-                link_url="/admin",
-            )
-            db.add(notif)
-        else:
-            notif = Notification(
-                user_id=target_user_id,
-                type="info",
-                title="Role Updated",
-                message="Your account role has been updated to Member.",
-                link_url="/dashboard",
-            )
-            db.add(notif)
-
-        await db.commit()
-        await db.refresh(user)
-
-        # Return updated summary
-        all_users = await AdminService.get_all_users(db)
-        return next((u for u in all_users if u.id == target_user_id), None)
-
-    @staticmethod
-    async def delete_user(db: AsyncSession, target_user_id: str, admin_id: str) -> bool:
-        if target_user_id == admin_id:
-            raise ValueError("You cannot delete your own admin account.")
-
-        stmt = select(User).where(User.id == target_user_id)
-        user = (await db.execute(stmt)).scalar_one_or_none()
-        if not user:
-            return False
-
-        await db.delete(user)
-        await db.commit()
-        return True

@@ -59,8 +59,6 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email or username already exists.",
-        )
-
     # If this is the very first user registering on the platform, make them Superuser Admin automatically
     count_stmt = select(func.count(User.id))
     user_count = (await db.execute(count_stmt)).scalar() or 0

@@ -36,6 +36,3 @@ class AdminUserDetail(BaseModel):
     user: AdminUserSummary
     habits: List[HabitResponse]
     recent_activity: List[Dict[str, Any]] = []
-
-class UpdateUserRoleRequest(BaseModel):
-    is_superuser: bool
