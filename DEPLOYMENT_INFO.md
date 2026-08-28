@@ -17,19 +17,19 @@ JWT_SECRET_KEY=habitquest_super_secret_jwt_key_for_development_2026
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=10080
 
-# CORS Allowed Domains (Add your custom domain here)
-BACKEND_CORS_ORIGINS=["https://habits.yourdomain.com","https://*.pages.dev","https://*.vercel.app","http://localhost:5173"]
+# CORS Allowed Domains (Custom domain on shafinchowdhury.dev)
+BACKEND_CORS_ORIGINS=["https://habits.shafinchowdhury.dev","https://app.shafinchowdhury.dev","https://*.pages.dev","https://*.vercel.app","http://localhost:5173"]
 ```
 
 ---
 
 ## 🌐 2. Frontend Environment Variables (Copy & Paste)
 
-When deploying your frontend (**Cloudflare Pages**, **Vercel**, or **Netlify**):
+When deploying your frontend (**Cloudflare Pages**):
 
 ```env
 # Point this to your live backend domain
-VITE_API_URL=https://<YOUR-BACKEND-DOMAIN>/api/v1
+VITE_API_URL=https://<YOUR-RENDER-BACKEND-URL>/api/v1
 ```
 
 *Example:* `VITE_API_URL=https://habitquest-api.onrender.com/api/v1`
@@ -46,28 +46,26 @@ VITE_API_URL=https://<YOUR-BACKEND-DOMAIN>/api/v1
 
 ## 🛠️ 4. Hosting Platform Settings
 
-### Backend (e.g. Render.com / Railway)
+### Backend (Render.com)
 * **Root Directory**: `backend`
 * **Environment**: `Python 3`
 * **Build Command**: `pip install -r requirements.txt`
 * **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
-### Frontend (e.g. Cloudflare Pages / Vercel)
+### Frontend (Cloudflare Pages)
 * **Root Directory**: `frontend`
 * **Framework Preset**: `Vite`
 * **Build Command**: `npm run build`
 * **Build Output Directory**: `dist`
-* **Node Version**: `18+` or `20+`
 
 ---
 
-## 🔗 5. Custom Subdomain DNS Record (e.g. `habits.yourdomain.com`)
+## 🔗 5. Custom Subdomain on Cloudflare (e.g. `habits.shafinchowdhury.dev`)
 
-In your domain DNS registrar (Cloudflare / Namecheap / GoDaddy / Route 53):
-
-| Type | Name / Host | Target / Value | TTL |
-| :--- | :--- | :--- | :--- |
-| `CNAME` | `habits` | `your-frontend-subdomain.pages.dev` (or `cname.vercel-dns.com`) | Auto / 1 hour |
+Because **`shafinchowdhury.dev`** is already active in your Cloudflare account:
+1. In Cloudflare Pages $\rightarrow$ Go to **Custom domains** tab.
+2. Click **Set up a custom domain** $\rightarrow$ Enter: **`habits.shafinchowdhury.dev`**
+3. Click **Activate domain**. Cloudflare configures the DNS and SSL automatically!
 
 ---
 
