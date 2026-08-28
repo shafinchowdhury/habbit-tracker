@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
@@ -59,7 +59,10 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email or username already exists.",
-        )
+    # If this is the very first user registering on the platform, make them Superuser Admin automatically
+    count_stmt = select(func.count(User.id))
+    user_count = (await db.execute(count_stmt)).scalar() or 0
+    is_first_user = (user_count == 0)
 
     user = User(
         email=user_in.email,
@@ -68,6 +71,7 @@ async def register(user_in: UserCreate, db: AsyncSession = Depends(get_db)):
         first_name=user_in.first_name,
         avatar_url=user_in.avatar_url or f"https://api.dicebear.com/7.x/bottts/svg?seed={user_in.username}",
         timezone=user_in.timezone or "UTC",
+        is_superuser=is_first_user,
     )
     db.add(user)
     await db.flush()
