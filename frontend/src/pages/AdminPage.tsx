@@ -300,15 +300,23 @@ export const AdminPage: React.FC = () => {
 
       {/* Filter and Search Row */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-text-tertiary absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative w-full sm:w-96">
+          <Search className="w-4 h-4 text-text-tertiary absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by username, email, ID..."
-            className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-surface-elevated border border-border text-xs text-text-primary focus:border-accent"
+            placeholder="Search by name, username, or email..."
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-surface-elevated border border-border text-xs text-text-primary focus:border-accent shadow-sm"
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 self-start sm:self-auto">
@@ -344,6 +352,12 @@ export const AdminPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {searchQuery && (
+        <p className="text-xs text-text-secondary font-medium">
+          Showing <span className="text-accent font-bold">{filteredUsers.length}</span> matching {filteredUsers.length === 1 ? 'user' : 'users'} for "<span className="text-text-primary font-semibold">{searchQuery}</span>"
+        </p>
+      )}
 
       {/* Users Table */}
       <div className="rounded-2xl bg-surface border border-border overflow-hidden shadow-subtle">
