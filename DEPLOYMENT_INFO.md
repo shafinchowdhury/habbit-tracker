@@ -36,11 +36,13 @@ _Example:_ `VITE_API_URL=https://habitquest-api.onrender.com/api/v1`
 
 ---
 
-## 👤 3. Default Admin & Demo Login Credentials
+## 👤 3. Official Admin Login Credentials
 
-- **Email / Username**: `demo@habitquest.app` or `shafin`
-- **Password**: `password123`
-- **Role**: `Admin / Superuser` (Access to Admin Portal at `/admin`)
+- **Username**: `admin`
+- **Display Name**: `Shafin Admin`
+- **Email**: `admin@shafinchowdhury.dev`
+- **Password**: `123456`
+- **Role**: `Superuser Admin` (Full access to Admin Portal at `/admin`)
 
 ---
 
