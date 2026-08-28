@@ -16,6 +16,12 @@ class HabitService:
     async def create_habit(db: AsyncSession, user_id: str, data: HabitCreate) -> HabitResponse:
         from datetime import timedelta
         habit_dict = data.model_dump()
+        
+        # Ensure all incoming datetimes are naive UTC for Postgres asyncpg
+        for dt_field in ["start_date", "end_date", "pause_until"]:
+            if habit_dict.get(dt_field) and isinstance(habit_dict[dt_field], datetime):
+                habit_dict[dt_field] = habit_dict[dt_field].replace(tzinfo=None)
+                
         if habit_dict.get("target_days") and not habit_dict.get("end_date"):
             start_d = habit_dict.get("start_date") or datetime.now(timezone.utc).replace(tzinfo=None)
             habit_dict["end_date"] = start_d + timedelta(days=habit_dict["target_days"])
@@ -110,6 +116,10 @@ class HabitService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
 
         update_data = data.model_dump(exclude_unset=True)
+        for dt_field in ["start_date", "end_date", "pause_until"]:
+            if update_data.get(dt_field) and isinstance(update_data[dt_field], datetime):
+                update_data[dt_field] = update_data[dt_field].replace(tzinfo=None)
+                
         if "target_days" in update_data:
             t_days = update_data["target_days"]
             if t_days is not None and t_days > 0:
@@ -123,7 +133,7 @@ class HabitService:
         for key, value in update_data.items():
             setattr(habit, key, value)
 
-        habit.updated_at = datetime.now(timezone.utc)
+        habit.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         await db.commit()
         await db.refresh(habit)
         return HabitResponse.model_validate(habit)

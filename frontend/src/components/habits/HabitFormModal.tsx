@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Sparkles, Clock, FileText, Calendar, Infinity as InfinityIcon } from 'lucide-react';
+import { X, Check, Sparkles, Clock, FileText, Calendar, Infinity as InfinityIcon, Loader2 } from 'lucide-react';
 import { Habit } from '../../types';
 
 interface Props {
@@ -63,6 +63,7 @@ export const HabitFormModal: React.FC<Props> = ({
     initialDays !== null && !PERIOD_PRESETS.some((p) => p.days === initialDays) ? String(initialDays) : ''
   );
 
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Compute calculated end date string
@@ -100,6 +101,7 @@ export const HabitFormModal: React.FC<Props> = ({
     e.preventDefault();
     if (!name.trim()) return;
 
+    setError(null);
     setIsSubmitting(true);
     try {
       const startDateTime = new Date(startDate || todayStr);
@@ -127,6 +129,8 @@ export const HabitFormModal: React.FC<Props> = ({
 
       await onSubmit(payload);
       onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to save habit. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -159,6 +163,12 @@ export const HabitFormModal: React.FC<Props> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-xl bg-danger/10 border border-danger/30 text-danger text-xs font-semibold text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Habit Name */}
@@ -376,8 +386,18 @@ export const HabitFormModal: React.FC<Props> = ({
               disabled={isSubmitting || !name.trim()}
               className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-accent text-white font-semibold text-xs hover:bg-accent-hover shadow-subtle transition-all active:scale-95 disabled:opacity-50"
             >
-              <Check className="w-4 h-4" />
-              <span>{initialHabit ? 'Save Changes' : 'Create Habit'}</span>
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              <span>
+                {isSubmitting
+                  ? 'Saving...'
+                  : initialHabit
+                  ? 'Save Changes'
+                  : 'Create Habit'}
+              </span>
             </button>
           </div>
         </form>
